@@ -15,11 +15,17 @@ class DrawingAPI(APIView):
     serializer_class = DrawingPostSerializer
 
     def get(self, request):
-        user_id = request.GET.get('user_id')
-        user = User.objects.filter(id=user_id).first()
-        drawings = user.drawings.all() if user else []
-        return Response(DrawingInfoSerializer(
-            drawings, many=True).data, status=status.HTTP_200_OK)
+        try:
+            user_id = request.GET.get('user_id')
+            user = User.objects.filter(id=user_id).first()
+            drawings = user.drawings.all() if user else []
+            return Response(DrawingInfoSerializer(
+                drawings, many=True).data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "status": "error",
+                "message": str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request):
         try:
@@ -51,13 +57,53 @@ class DrawingAPI(APIView):
 
 
 class AnimationAPI(APIView):
-    def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return AnimationPostSerializer
-        return AnimationInfoSerializer
+    serializer_class = AnimationPostSerializer
 
     def get(self, request):
-        pass
+        try:
+            user_id = request.GET.get('user_id')
+            drawing_id = request.GET.get('drawing_id')
+            user = User.objects.filter(id=user_id).first()
+            drawing = Drawing.objects.filter(id=drawing_id).first()
+            if drawing in user.drawings.all():
+                return Response(
+                    AnimationInfoSerializer(
+                        drawing.animations.all(), many=True).data,
+                    status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    "status": "error",
+                    "message": "Drawing is not for this user"
+                }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({
+                "status": "error",
+                "message": str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request):
-        pass
+        try:
+            drawing_id = request.data['drawing_id']
+            drawing = Drawing.objects.filter(id=drawing_id).first()
+            if not drawing:
+                return Response({
+                    "status": "error",
+                    "message": "Drawing does not exist"
+                }, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                purpose = request.data['purpose']
+                file = request.data['file']
+                animation = Animation.objects.create(
+                    drawing=drawing,
+                    purpose=purpose,
+                    file=file)
+                return Response({
+                    "status": "success",
+                    "message": "Image Uploaded Successfully",
+                    "data": AnimationInfoSerializer(animation).data
+                }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                "status": "error",
+                "message": str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)

@@ -24,10 +24,12 @@ class AnimationPostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Animation
-        fields = ['id', "drawing_id", "link", "purpose"]
+        fields = ["drawing_id", "file", "purpose"]
 
 
 class AnimationInfoSerializer(serializers.ModelSerializer):
+    link = serializers.ReadOnlyField(source='file.url')
+
     class Meta:
         model = Animation
         fields = ['id', "drawing_id", "link", "purpose"]
