@@ -5,6 +5,8 @@ AZURE를 이용해서 배포했습니다.
 도매인을 det4.site로 걸어놓았고 포트가 5000이므로
 **http://www.det4.site:5000** 으로 이용하셔도 됩니다.
 
+현재 admin 주소는 **http://www.det4.site:5000/admin**이고, ID/PW 모두 **admin**입니다.
+
 test는 pytest -s 하면 됩니다. 아마 코드는 잘 읽혀질 겁니다
 core/utility.py에 가공하는 함수를 다 넣어놨습니다.
 
