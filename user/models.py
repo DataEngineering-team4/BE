@@ -1,3 +1,4 @@
+from asgiref.sync import sync_to_async
 from django.contrib.auth.models import AbstractUser
 from django.db.models import CharField
 from django.urls import reverse
@@ -16,11 +17,17 @@ class User(AbstractUser):
     first_name = None  # type: ignore
     last_name = None  # type: ignore
 
-    def get_room_name(self):
-        return self.username + str(self.rooms.all().count())
+    @classmethod
+    async def get_user(cls, username):
+        users = await sync_to_async(list)(User.objects.filter(username=username))
+        return users[0] if len(users) > 0 else None
 
-    def get_room_count(self):
-        return self.rooms.all().count()
+    async def get_room_name(self):
+        room_count = await self.get_room_count()
+        return self.username + str(room_count)
+
+    async def get_room_count(self):
+        return len(await sync_to_async(list)(self.rooms.all()))
 
     def __str__(self):
         return self.username

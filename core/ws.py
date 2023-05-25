@@ -1,100 +1,104 @@
 import json
 from time import sleep
 
-from channels.generic.websocket import JsonWebsocketConsumer, async_to_sync
+from asgiref.sync import sync_to_async
+from channels.generic.websocket import (AsyncJsonWebsocketConsumer,
+                                        JsonWebsocketConsumer, async_to_sync)
 
 from core.utility import *
 from room.models import Message, Room
 from user.models import User
 
 
-class GptResponseGenerator(JsonWebsocketConsumer):
-    def connect(self):
+class GptResponseGenerator(AsyncJsonWebsocketConsumer):
+    async def connect(self):
         # 파라미터 값으로 채팅 룸을 구별
         print("GPT RESPONSE CONNECT")
         # print(self.scope['headers'])
         username = self.scope['url_route']['kwargs']['username']
-        user = User.objects.filter(username=username).first()
-        if not user:
-            print_colored('No User Exists!',"red")
-            self.close()
-        else:
-            self.user = user
-            self.room_name = user.get_room_name()
-            self.room = Room.objects.create(
-                user=user)
+        try:
+            user = await User.get_user(username)
+        except User.DoesNotExist:
+            print_colored('No User Exists!', "red")
+            await self.close()
+        self.user = user
+        self.room_name = user.get_room_name()
+        room_count = await user.get_room_count()
+        self.room = await sync_to_async(Room.objects.create)(
+            user=user, count=room_count)
 
-            self.accept()
+        await self.accept()
 
-            hello_message = f"안녕하세요! {username}님! 반가워요!"
-            self.send_output_text(hello_message)
+        hello_message = f"안녕하세요! {username}님! 반가워요!"
+        await self.send_output_text(hello_message)
 
-            hello_message_audio_url = get_audio_file_url_using_polly(
-                hello_message)
-            self.send_audio_url(hello_message_audio_url)
-            self.send_finish_signal()
+        hello_message_audio_url = get_audio_file_url_using_polly(
+            hello_message)
+        await self.send_audio_url(hello_message_audio_url)
+        await self.send_finish_signal()
 
-            Message.objects.create(
-                room=self.room, audio_url=hello_message_audio_url, text=hello_message, role='system')
+        await sync_to_async(Message.objects.create)(
+            room=self.room, audio_url=hello_message_audio_url, text=hello_message, role='assistant')
 
-    def disconnect(self, close_code):
+    async def disconnect(self, close_code):
         print_colored("DISCONNECT GPT RESPONSE", "yellow")
 
     # 웹소켓으로부터 메세지 받음
 
-    def receive(self, text_data):
+    async def receive(self, text_data):
         data = json.loads(text_data)
         audio_file = data.get('audio_file', None)
         audio_data = decode_audio(audio_file)
         input_audio_url = save_audio(audio_data, create_input_file_name())
         text_gotten_by_input_data = generate_text(audio_data)
-        self.send_input_text(text_gotten_by_input_data)
-        Message.objects.create(
+        await self.send_input_text(text_gotten_by_input_data)
+        await sync_to_async(Message.objects.create)(
             room=self.room, audio_url=input_audio_url, text=text_gotten_by_input_data, role='user')
         print_colored(
             f'RECEIVE AND SEND: {text_gotten_by_input_data}', 'green')
-        messages = []  # TO DO : messages by user DB (using ROOM_NAME)
+        # TO DO : messages by user DB (using ROOM_NAME)
+        messages = await self.room.get_messages()
         messages = add_user_message_to_messages(
             messages, text_gotten_by_input_data)
         for sentence in get_sentences_by_chatgpt(messages):
+            if sentence.strip() == "":
+                continue
+            if len(sentence) < 3:  # 숫자의 경우 너무 짧아서 에러가 남
+                sleep(0.5)
             messages = add_assistant_message_to_messages(messages, sentence)
-            self.send_output_text(sentence)
-            print_colored(f'SEND OUTPUT TEXT : {sentence}', "green")
+            await self.send_output_text(sentence)
+            print_colored(f'SEND OUTPUT TEXT : {sentence}', "yellow")
             output_audio_url = get_audio_file_url_using_polly(sentence)
-            self.send_audio_url(output_audio_url)
-            print_colored(f"SEND AUDIO URL : {output_audio_url}", "green")
-            Message.objects.create(
-                room=self.room, audio_url=audio_file, text=text_gotten_by_input_data, role='system')
+            await self.send_audio_url(output_audio_url)
+            print_colored(f"SEND AUDIO URL : {output_audio_url}", "yellow")
+            await sync_to_async(Message.objects.create)(
+                room=self.room, audio_url=audio_file, text=sentence, role='assistant')
 
-        self.send_finish_signal()
+        await self.send_finish_signal()
 
     # 룸 그룹으로부터 메세지 받음
-    def send_input_text(self, text):
-        print("INPUT TEXT")
+    async def send_input_text(self, text):
         # 웹소켓으로 메세지 보냄
-        self.send(text_data=json.dumps({
+        await self.send(text_data=json.dumps({
             "type": "input_text",
             "content": text
         }))
 
-    def send_output_text(self, text):
-        print("OUTPUT TEXT")
-        self.send(text_data=json.dumps({
+    async def send_output_text(self, text):
+        await self.send(text_data=json.dumps({
             "type": "output_text",
             "content": text
         }))
 
-    def send_finish_signal(self):
-        print("OUTPUT TEXT")
-        self.send(text_data=json.dumps({
+    async def send_finish_signal(self):
+        await self.send(text_data=json.dumps({
             "type": "finish_signal",
             "content": "FINISH!"
         }))
 
-    def send_audio_url(self, audio_url):
-        print("AUDIO URL")
+    async def send_audio_url(self, audio_url):
         # 웹소켓으로 메세지 보냄
-        self.send(text_data=json.dumps({
+        await self.send(text_data=json.dumps({
             "type": "audio_url",
             "content": audio_url
         }))
