@@ -11,6 +11,10 @@ MESSAGE_ROLE_CHOICES = (
 class Room(TimeStampedModel):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="rooms")
+    count = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.user.username}의 {self.count}번째 방"
 
 
 class Message(TimeStampedModel):
@@ -19,3 +23,6 @@ class Message(TimeStampedModel):
     audio_url = models.URLField()
     text = models.TextField()
     role = models.CharField(max_length=10, choices=MESSAGE_ROLE_CHOICES)
+
+    def __str__(self):
+        return f"[{str(self.room)}] {self.role}: {self.text}"

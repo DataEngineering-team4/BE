@@ -20,6 +20,9 @@ class Drawing(TimeStampedModel):
     status = models.CharField(
         max_length=15, choices=DRAWING_STATUS_CHOICES, default="active")
 
+    def __str__(self):
+        return f"{self.user.username}의 {self.name}"
+
 
 class Animation(TimeStampedModel):
     drawing = models.ForeignKey(
@@ -27,3 +30,6 @@ class Animation(TimeStampedModel):
     file = models.FileField(upload_to="animation")
     purpose = models.CharField(
         max_length=10, choices=ANIMATIOIN_PURPOSE_CHOICES)
+
+    def __str__(self):
+        return f"[{str(self.drawing)}] {self.purpose}"

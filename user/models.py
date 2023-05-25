@@ -18,3 +18,9 @@ class User(AbstractUser):
 
     def get_room_name(self):
         return self.username + str(self.rooms.all().count())
+
+    def get_room_count(self):
+        return self.rooms.all().count()
+
+    def __str__(self):
+        return self.username
