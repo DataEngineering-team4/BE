@@ -9,7 +9,7 @@ from room.models import Message, Room
 class RoomAdmin(admin.ModelAdmin):
     list_display = (
         "user",
-        "pk",
+        "count",
     )
 
 
@@ -17,6 +17,7 @@ class RoomAdmin(admin.ModelAdmin):
 class MessageAdmin(admin.ModelAdmin):
     list_display = (
         "room",
+        "count",
         "audio_url",
         "text",
         "role",

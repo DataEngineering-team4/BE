@@ -4,12 +4,19 @@ import time
 from io import BytesIO
 
 from core.print import print_colored
-from core.setup import BUCKET_NAME, logger, openai, polly, polly_voice, s3
+from core.setup import (AWS_S3_REGION_NAME, BUCKET_NAME, logger, openai, polly,
+                        polly_voice, s3)
+
+
+def get_file_url(file_key):
+    return f"https://{BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/{file_key}"
 
 
 def save_file_to_s3(file, file_name):
+    """Return URL of file"""
     try:
         s3.upload_fileobj(file, BUCKET_NAME, file_name)
+        return get_file_url(file_name)
     except Exception as e:
         raise Exception(f"Error uploading to S3: {e}")
 
@@ -25,17 +32,18 @@ def create_file_time():
 
 
 def create_input_file_name():
-    return f"INPUT_{create_file_time()}"
+    return f"audio/INPUT_{create_file_time()}"
 
 
 def create_output_file_name():
-    return f"OUTPUT_{create_file_time()}"
+    return f"audio/OUTPUT_{create_file_time()}"
 
 
 def save_audio(audio_data, file_name):
+    """Return URL of file"""
     audio_file = BytesIO(audio_data)
     try:
-        save_file_to_s3(audio_file, file_name)
+        return save_file_to_s3(audio_file, file_name)
     except Exception as e:
         raise Exception("An Error Occur in SAVE AUDIO")
 
@@ -44,7 +52,7 @@ def generate_text(audio_data):
     now = datetime.datetime.now()
     audio_file = BytesIO(audio_data)
     # 의미없다
-    audio_file.name = f"temp_{now.year}_{now.month}_{now.day}_{now.hour}{now.minute}{now.second}.wav"
+    audio_file.name = f"audio/temp_{now.year}_{now.month}_{now.day}_{now.hour}{now.minute}{now.second}.wav"
     transcript = openai.Audio.transcribe("whisper-1", audio_file)
     text = transcript['text']
     logger.info(text)

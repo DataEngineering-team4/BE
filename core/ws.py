@@ -1,10 +1,10 @@
 import json
 from time import sleep
 
-from channels.generic.websocket import (AsyncJsonWebsocketConsumer,
-                                        JsonWebsocketConsumer, async_to_sync)
+from channels.generic.websocket import JsonWebsocketConsumer, async_to_sync
 
 from core.utility import *
+from room.models import Message, Room
 from user.models import User
 
 
@@ -14,18 +14,28 @@ class GptResponseGenerator(JsonWebsocketConsumer):
         print("GPT RESPONSE CONNECT")
         # print(self.scope['headers'])
         username = self.scope['url_route']['kwargs']['username']
-        user = User.objects.get(username=username)
-        self.room_name = user.get_room_name()
+        user = User.objects.filter(username=username).first()
+        if not user:
+            print('No User Exists!')
+            self.close()
+        else:
+            self.user = user
+            self.room_name = user.get_room_name()
+            self.room = Room.objects.create(
+                user=user)
 
-        self.accept()
+            self.accept()
 
-        hello_message = f"안녕하세요! {username}님! 반가워요!"
-        self.send_output_text(hello_message)
+            hello_message = f"안녕하세요! {username}님! 반가워요!"
+            self.send_output_text(hello_message)
 
-        hello_message_audio_url = get_audio_file_url_using_polly(
-            hello_message)
-        self.send_audio_url(hello_message_audio_url)
-        self.send_finish_signal()
+            hello_message_audio_url = get_audio_file_url_using_polly(
+                hello_message)
+            self.send_audio_url(hello_message_audio_url)
+            self.send_finish_signal()
+
+            Message.objects.create(
+                room=self.room, audio_url=hello_message_audio_url, text=hello_message, role='system')
 
     def disconnect(self, close_code):
         print("DISCONNECT GPT RESPONSE")
@@ -33,24 +43,27 @@ class GptResponseGenerator(JsonWebsocketConsumer):
     # 웹소켓으로부터 메세지 받음
 
     def receive(self, text_data):
-        print("RECEIVE!!!")
         data = json.loads(text_data)
         audio_file = data.get('audio_file', None)
         audio_data = decode_audio(audio_file)
-        save_audio(audio_data, create_input_file_name())
+        input_audio_url = save_audio(audio_data, create_input_file_name())
         text_gotten_by_input_data = generate_text(audio_data)
         self.send_input_text(text_gotten_by_input_data)
-        print('SENT1')
+        Message.objects.create(
+            room=self.room, audio_url=input_audio_url, text=text_gotten_by_input_data, role='user')
+        print(f'RECEIVE AND SEND: {text_gotten_by_input_data}')
         messages = []  # TO DO : messages by user DB (using ROOM_NAME)
         messages = add_user_message_to_messages(
             messages, text_gotten_by_input_data)
         for sentence in get_sentences_by_chatgpt(messages):
             messages = add_assistant_message_to_messages(messages, sentence)
             self.send_output_text(sentence)
-            print('SEND OUTPUT TEXT')
+            print(f'SEND OUTPUT TEXT : {sentence}')
             output_audio_url = get_audio_file_url_using_polly(sentence)
             self.send_audio_url(output_audio_url)
-            print("SEND AUDIO URL")
+            print(f"SEND AUDIO URL : {output_audio_url}")
+            Message.objects.create(
+                room=self.room, audio_url=audio_file, text=text_gotten_by_input_data, role='system')
 
         self.send_finish_signal()
 

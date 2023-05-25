@@ -5,6 +5,7 @@ import time
 from datetime import datetime
 from io import BytesIO
 
+import requests
 from django.test import TestCase
 
 from core.print import print_colored
@@ -13,7 +14,7 @@ from core.utility import (add_assistant_message_to_messages,
                           add_user_message_to_messages,
                           create_output_file_name, decode_audio, generate_text,
                           get_audio_file_url_using_polly,
-                          get_complete_message_by_chatgpt,
+                          get_complete_message_by_chatgpt, get_file_url,
                           get_sentences_by_chatgpt, has_special_characters,
                           save_audio, save_file_to_s3)
 
@@ -39,6 +40,22 @@ def check_file_in_s3_bucket(bucket_name, file_key):
 
 
 class CoreUtilityTest(TestCase):
+
+    def test_get_file_url(self):
+        with open(TEST_FILE_PATH, 'rb') as f:
+            content = f.read()
+        test_file = BytesIO(content)
+        test_file.name = "test.txt"
+        try:
+            s3.delete_object(Bucket=BUCKET_NAME, Key=test_file.name)
+        except Exception as e:
+            print(e)
+        save_file_to_s3(test_file, test_file.name)
+        response = requests.get(get_file_url(test_file.name))
+
+        assert response.status_code == 200
+
+        s3.delete_object(Bucket=BUCKET_NAME, Key=test_file.name)
 
     def test_save_file_to_s3(self):
         with open(TEST_FILE_PATH, 'rb') as f:

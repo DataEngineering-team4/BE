@@ -13,6 +13,8 @@ ANIMATIOIN_PURPOSE_CHOICES = (
 
 
 class Drawing(TimeStampedModel):
+    class Meta:
+        ordering = ['-created_at']
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="drawings")
     name = models.CharField(max_length=100)
@@ -25,6 +27,8 @@ class Drawing(TimeStampedModel):
 
 
 class Animation(TimeStampedModel):
+    class Meta:
+        ordering = ['-created_at']
     drawing = models.ForeignKey(
         Drawing, on_delete=models.CASCADE, related_name="animations")
     file = models.FileField(upload_to="animation")

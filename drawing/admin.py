@@ -12,8 +12,13 @@ class DrawingAdmin(admin.ModelAdmin):
     list_display = (
         "user",
         "name",
+        "detail_url",
         "status",
     )
+
+    def detail_url(self, instance):
+        url = instance.file.url
+        return mark_safe(f'<a href="{url}" target="_blank" rel="nofollow"">Animation Link</a>')
 
 
 @admin.register(Animation)
