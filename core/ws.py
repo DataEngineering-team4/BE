@@ -5,6 +5,7 @@ from channels.generic.websocket import (AsyncJsonWebsocketConsumer,
                                         JsonWebsocketConsumer, async_to_sync)
 
 from core.utility import *
+from user.models import User
 
 
 class GptResponseGenerator(JsonWebsocketConsumer):
@@ -12,18 +13,13 @@ class GptResponseGenerator(JsonWebsocketConsumer):
         # 파라미터 값으로 채팅 룸을 구별
         print("GPT RESPONSE CONNECT")
         # print(self.scope['headers'])
-        self.room_name = "GPT_ROOM"
-        self.room_group_name = 'talk_%s' % self.room_name
-
-        # 룸 그룹에 참가
-        async_to_sync(self.channel_layer.group_add)(
-            self.room_group_name,
-            self.channel_name
-        )
+        username = self.scope['url_route']['kwargs']['username']
+        user = User.objects.get(username=username)
+        self.room_name = user.get_room_name()
 
         self.accept()
 
-        hello_message = "안녕하세요"
+        hello_message = f"안녕하세요! {username}님! 반가워요!"
         self.send_output_text(hello_message)
 
         hello_message_audio_url = get_audio_file_url_using_polly(
@@ -33,11 +29,6 @@ class GptResponseGenerator(JsonWebsocketConsumer):
 
     def disconnect(self, close_code):
         print("DISCONNECT GPT RESPONSE")
-        # 룸 그룹 나가기
-        async_to_sync(self.channel_layer.group_discard)(
-            self.room_group_name,
-            self.channel_name
-        )
 
     # 웹소켓으로부터 메세지 받음
 

@@ -16,6 +16,6 @@ class Room(TimeStampedModel):
 class Message(TimeStampedModel):
     room = models.ForeignKey(
         Room, on_delete=models.CASCADE, related_name="messages")
-    audio_url = models.FileField(upload_to="audio")
+    audio_url = models.URLField()
     text = models.TextField()
     role = models.CharField(max_length=10, choices=MESSAGE_ROLE_CHOICES)

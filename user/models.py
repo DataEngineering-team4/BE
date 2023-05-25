@@ -15,3 +15,6 @@ class User(AbstractUser):
     name = CharField(_("Name of User"), blank=True, max_length=255)
     first_name = None  # type: ignore
     last_name = None  # type: ignore
+
+    def get_room_name(self):
+        return self.username + str(self.rooms.all().count())
