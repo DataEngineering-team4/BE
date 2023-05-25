@@ -1,6 +1,7 @@
 from django.contrib.auth.hashers import check_password
 from rest_framework import status
 from rest_framework.decorators import api_view
+from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -29,6 +30,7 @@ class MyTokenObtainPairView(TokenObtainPairView):
 
 
 class UserSignupAPI(APIView):
+    parser_classes = (JSONParser,)
     serializer_class = UserSignUpSerializer
 
     def post(self, request):
@@ -60,6 +62,7 @@ class UserSignupAPI(APIView):
 
 
 class UserLoginAPI(APIView):
+    parser_classes = (JSONParser,)
     serializer_class = UserLoginSerializer
 
     def post(self, request):
