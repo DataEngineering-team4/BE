@@ -16,7 +16,7 @@ class GptResponseGenerator(JsonWebsocketConsumer):
         username = self.scope['url_route']['kwargs']['username']
         user = User.objects.filter(username=username).first()
         if not user:
-            print('No User Exists!')
+            print_colored('No User Exists!',"red")
             self.close()
         else:
             self.user = user
@@ -38,7 +38,7 @@ class GptResponseGenerator(JsonWebsocketConsumer):
                 room=self.room, audio_url=hello_message_audio_url, text=hello_message, role='system')
 
     def disconnect(self, close_code):
-        print("DISCONNECT GPT RESPONSE")
+        print_colored("DISCONNECT GPT RESPONSE", "yellow")
 
     # 웹소켓으로부터 메세지 받음
 
@@ -51,17 +51,18 @@ class GptResponseGenerator(JsonWebsocketConsumer):
         self.send_input_text(text_gotten_by_input_data)
         Message.objects.create(
             room=self.room, audio_url=input_audio_url, text=text_gotten_by_input_data, role='user')
-        print(f'RECEIVE AND SEND: {text_gotten_by_input_data}')
+        print_colored(
+            f'RECEIVE AND SEND: {text_gotten_by_input_data}', 'green')
         messages = []  # TO DO : messages by user DB (using ROOM_NAME)
         messages = add_user_message_to_messages(
             messages, text_gotten_by_input_data)
         for sentence in get_sentences_by_chatgpt(messages):
             messages = add_assistant_message_to_messages(messages, sentence)
             self.send_output_text(sentence)
-            print(f'SEND OUTPUT TEXT : {sentence}')
+            print_colored(f'SEND OUTPUT TEXT : {sentence}', "green")
             output_audio_url = get_audio_file_url_using_polly(sentence)
             self.send_audio_url(output_audio_url)
-            print(f"SEND AUDIO URL : {output_audio_url}")
+            print_colored(f"SEND AUDIO URL : {output_audio_url}", "green")
             Message.objects.create(
                 room=self.room, audio_url=audio_file, text=text_gotten_by_input_data, role='system')
 
