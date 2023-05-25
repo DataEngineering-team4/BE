@@ -6,13 +6,15 @@ from drawing.models import Animation, Drawing
 class DrawingPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Drawing
-        fields = ['name', "link", ]
+        fields = ['name', "file", "user"]
 
 
 class DrawingInfoSerializer(serializers.ModelSerializer):
+    link = serializers.ReadOnlyField(source='file.url')
+
     class Meta:
         model = Drawing
-        fields = ['id', "password", "email", ]
+        fields = ['id', "name", "link", "status"]
 
 
 class AnimationPostSerializer(serializers.ModelSerializer):

@@ -24,6 +24,6 @@ urlpatterns = [
     path("", views.home, name="home"),
     path('user/', include('user.urls')),
     path('drawing/', DrawingAPI.as_view(), name="drawing"),
-    path('animation/', DrawingAPI.as_view(), name="animation"),
+    path('animation/', AnimationAPI.as_view(), name="animation"),
     path('admin/', admin.site.urls),
 ]

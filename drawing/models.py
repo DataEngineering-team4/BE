@@ -4,7 +4,7 @@ from core.models import TimeStampedModel
 from user.models import User
 
 DRAWING_STATUS_CHOICES = (
-    ("active", "활성"), ("inactive", "비활성"),
+    ("pending", "승인필요"), ("approved", "승인됨"), ("active", "활성"), ("inactive", "비활성"),
 )
 
 ANIMATIOIN_PURPOSE_CHOICES = (
@@ -13,7 +13,8 @@ ANIMATIOIN_PURPOSE_CHOICES = (
 
 
 class Drawing(TimeStampedModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="drawings")
     name = models.CharField(max_length=100)
     file = models.FileField(upload_to="drawing")
     status = models.CharField(
@@ -21,7 +22,8 @@ class Drawing(TimeStampedModel):
 
 
 class Animation(TimeStampedModel):
-    drawing = models.ForeignKey(Drawing, on_delete=models.CASCADE)
+    drawing = models.ForeignKey(
+        Drawing, on_delete=models.CASCADE, related_name="animations")
     file = models.FileField(upload_to="animation")
     purpose = models.CharField(
         max_length=10, choices=ANIMATIOIN_PURPOSE_CHOICES)

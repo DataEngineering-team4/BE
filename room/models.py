@@ -9,11 +9,13 @@ MESSAGE_ROLE_CHOICES = (
 
 
 class Room(TimeStampedModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="rooms")
 
 
 class Message(TimeStampedModel):
-    room = models.ForeignKey(Room, on_delete=models.CASCADE)
+    room = models.ForeignKey(
+        Room, on_delete=models.CASCADE, related_name="messages")
     audio_url = models.FileField(upload_to="audio")
     text = models.TextField()
     role = models.CharField(max_length=10, choices=MESSAGE_ROLE_CHOICES)
