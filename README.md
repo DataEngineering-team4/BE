@@ -16,3 +16,7 @@ ssh -i <private key path> shsf@4.230.8.32
 배포하고 싶을 때는 다음과 같이 입력하시면 됩니다.
 
 nohup daphne -b 0.0.0.0 -p 5000 config.asgi:application
+
+process 확인은 sudo lsof -i :5000
+
+그리고 kill -9 <PID> 하시면 됩니다.
