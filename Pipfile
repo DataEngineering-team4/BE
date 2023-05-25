@@ -14,6 +14,7 @@ boto3 = "*"
 django-environ = "*"
 djangorestframework-simplejwt = "*"
 channels-redis = "*"
+django-storages = "*"
 
 [dev-packages]
 

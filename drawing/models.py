@@ -15,13 +15,13 @@ ANIMATIOIN_PURPOSE_CHOICES = (
 class Drawing(TimeStampedModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
-    link = models.URLField()
+    file = models.FileField(upload_to="drawing")
     status = models.CharField(
         max_length=15, choices=DRAWING_STATUS_CHOICES, default="active")
 
 
 class Animation(TimeStampedModel):
     drawing = models.ForeignKey(Drawing, on_delete=models.CASCADE)
-    link = models.URLField()
+    file = models.FileField(upload_to="animation")
     purpose = models.CharField(
         max_length=10, choices=ANIMATIOIN_PURPOSE_CHOICES)

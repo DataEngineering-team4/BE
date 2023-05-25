@@ -18,9 +18,12 @@ from django.contrib import admin
 from django.urls import include, path
 
 from core import views
+from drawing.views import AnimationAPI, DrawingAPI
 
 urlpatterns = [
     path("", views.home, name="home"),
     path('user/', include('user.urls')),
+    path('drawing/', DrawingAPI.as_view(), name="drawing"),
+    path('animation/', DrawingAPI.as_view(), name="animation"),
     path('admin/', admin.site.urls),
 ]
