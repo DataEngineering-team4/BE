@@ -1,6 +1,6 @@
 from rest_framework import status
 from rest_framework.decorators import api_view
-from rest_framework.parsers import JSONParser
+from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -13,7 +13,7 @@ from user.models import User
 
 # Create your views here.
 class DrawingAPI(APIView):
-    parser_classes = (JSONParser,)
+    parser_classes = (MultiPartParser,)
     serializer_class = DrawingPostSerializer
 
     def get(self, request):
@@ -60,7 +60,7 @@ class DrawingAPI(APIView):
 
 class AnimationAPI(APIView):
     serializer_class = AnimationPostSerializer
-    parser_classes = (JSONParser,)
+    parser_classes = (MultiPartParser,)
 
     def get(self, request):
         try:

@@ -15,4 +15,4 @@ ssh -i <private key path> shsf@4.230.8.32
 
 배포하고 싶을 때는 다음과 같이 입력하시면 됩니다.
 
-daphne -b 0.0.0.0 -p 5000 config.asgi:application
+nohup daphne -b 0.0.0.0 -p 5000 config.asgi:application
