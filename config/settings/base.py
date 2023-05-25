@@ -37,7 +37,9 @@ ALLOWED_HOSTS = ["127.0.0.1:8000", 'det4.site', "4.230.8.32"]
 
 AUTH_USER_MODEL = 'user.User'
 
+DJANGO_ALLOW_ASYNC_UNSAFE = True
 # Application definition
+LOGGING_CONFIG = None
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -56,9 +58,9 @@ THIRD_PARTY_APPS = [
 ]
 
 MODELS = [
-    "drawing",
-    "room",
-    "user",
+    "drawing.apps.DrawingConfig",
+    "room.apps.RoomConfig",
+    "user.apps.UserConfig",
 ]
 
 INSTALLED_APPS = INSTALLED_APPS + THIRD_PARTY_APPS + MODELS
