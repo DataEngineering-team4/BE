@@ -23,7 +23,7 @@ class DrawingAPI(APIView):
 
     def post(self, request):
         try:
-            user_id = request.data['user']
+            user_id = request.data['user_id']
             user = User.objects.filter(id=user_id).first()
             if not user:
                 return Response({

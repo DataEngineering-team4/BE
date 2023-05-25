@@ -17,6 +17,7 @@ channels-redis = "*"
 django-storages = "*"
 
 [dev-packages]
+drf-yasg = "*"
 
 [requires]
 python_version = "3.9"

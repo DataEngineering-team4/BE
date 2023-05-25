@@ -4,9 +4,11 @@ from drawing.models import Animation, Drawing
 
 
 class DrawingPostSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(source='user.id')
+
     class Meta:
         model = Drawing
-        fields = ['name', "file", "user"]
+        fields = ['name', "file", "user_id"]
 
 
 class DrawingInfoSerializer(serializers.ModelSerializer):
@@ -18,6 +20,8 @@ class DrawingInfoSerializer(serializers.ModelSerializer):
 
 
 class AnimationPostSerializer(serializers.ModelSerializer):
+    drawing_id = serializers.IntegerField(source='drawing.id')
+
     class Meta:
         model = Animation
         fields = ['id', "drawing_id", "link", "purpose"]
