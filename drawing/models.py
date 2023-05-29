@@ -8,7 +8,8 @@ DRAWING_STATUS_CHOICES = (
 )
 
 ANIMATIOIN_PURPOSE_CHOICES = (
-    ("wait1", "대기1"), ("wait2", "대기2"), ("listen1", "듣는중1"), ("listen2", "듣는중2")
+    ("wait1", "대기1"), ("wait2", "대기2"), ("listen1", "듣는중1"),
+    ("listen2", "듣는중2"), ("talking1", "말하는중1"), ("talking2", "말하는중2")
 )
 
 

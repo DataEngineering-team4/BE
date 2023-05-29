@@ -17,9 +17,10 @@ if True:
     from core import routing
 
 
-asgi_routes = {}
-asgi_routes["http"] = django_asgi_app
-asgi_routes["weboscket"] = AuthMiddlewareStack(
-    URLRouter(routing.websocket_urlpatterns)
-)
-application = ProtocolTypeRouter(asgi_routes)
+application = ProtocolTypeRouter({
+    # Django's ASGI application to handle traditional HTTP requests
+    "http": django_asgi_app,
+    "websocket": AuthMiddlewareStack(
+        URLRouter(routing.websocket_urlpatterns)
+    ),
+})
