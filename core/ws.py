@@ -65,14 +65,14 @@ class GptResponseGenerator(AsyncJsonWebsocketConsumer):
                 continue
             messages = add_assistant_message_to_messages(messages, sentence)
             output_audio_url = get_audio_file_url_using_polly(sentence)
-            if len(sentence) < 10:  # 숫자의 경우 너무 짧아서 에러가 남
-                sleep(1)
             await self.send_output_text(sentence)
             print_colored(f'SEND OUTPUT TEXT : {sentence}', "yellow")
             await self.send_audio_url(output_audio_url)
             print_colored(f"SEND AUDIO URL : {output_audio_url}", "yellow")
             await sync_to_async(Message.objects.create)(
                 room=self.room, audio_url=audio_file, text=sentence, role='assistant')
+            if len(sentence) < 10:  # 숫자의 경우 너무 짧아서 에러가 남
+                sleep(1)
 
         await self.send_finish_signal()
 
