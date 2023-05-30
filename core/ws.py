@@ -1,3 +1,4 @@
+import asyncio
 import json
 from time import sleep
 
@@ -72,7 +73,7 @@ class GptResponseGenerator(AsyncJsonWebsocketConsumer):
             await sync_to_async(Message.objects.create)(
                 room=self.room, audio_url=audio_file, text=sentence, role='assistant')
             if len(sentence) < 10:  # 숫자의 경우 너무 짧아서 에러가 남
-                sleep(1)
+                await asyncio.sleep(1)
 
         await self.send_finish_signal()
 
