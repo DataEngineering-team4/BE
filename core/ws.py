@@ -63,12 +63,12 @@ class GptResponseGenerator(AsyncJsonWebsocketConsumer):
         for sentence in get_sentences_by_chatgpt(messages):
             if sentence.strip() == "":
                 continue
-            if len(sentence) < 3:  # 숫자의 경우 너무 짧아서 에러가 남
-                sleep(0.5)
+            if len(sentence) < 10:  # 숫자의 경우 너무 짧아서 에러가 남
+                sleep(1)
             messages = add_assistant_message_to_messages(messages, sentence)
+            output_audio_url = get_audio_file_url_using_polly(sentence)
             await self.send_output_text(sentence)
             print_colored(f'SEND OUTPUT TEXT : {sentence}', "yellow")
-            output_audio_url = get_audio_file_url_using_polly(sentence)
             await self.send_audio_url(output_audio_url)
             print_colored(f"SEND AUDIO URL : {output_audio_url}", "yellow")
             await sync_to_async(Message.objects.create)(
