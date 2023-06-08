@@ -16,9 +16,13 @@ class Room(TimeStampedModel):
         User, on_delete=models.CASCADE, related_name="rooms")
     count = models.IntegerField(null=True, blank=True)
 
+    async def set_system(self, prompt):
+        await sync_to_async(Message.objects.create)(
+            room=self, text=prompt, role="system")
+
     async def get_messages(self):
         messages = []
-        async for message in self.messages.all():
+        async for message in self.messages.all().order_by("created_at"):
             messages.append({"role": message.role, "content": message.text})
         return messages
 

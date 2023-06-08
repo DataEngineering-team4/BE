@@ -11,7 +11,30 @@ from room.models import Message, Room
 from user.models import User
 
 
+async def send_sentence(sentence):
+    messages = add_assistant_message_to_messages(
+        messages, sentence)
+    output_audio_url = get_audio_file_url_using_polly(sentence)
+    await self.send_output_text(sentence)
+    print_colored(f'SEND OUTPUT TEXT : {sentence}', "yellow")
+    await self.send_audio_url(output_audio_url)
+    print_colored(f"SEND AUDIO URL : {output_audio_url}", "yellow")
+    await sync_to_async(Message.objects.create)(
+        room=self.room, audio_url=audio_file, text=sentence, role='assistant')
+
+
 class GptResponseGenerator(AsyncJsonWebsocketConsumer):
+    async def send_sentence(self, messages, sentence, audio_file):
+        messages = add_assistant_message_to_messages(
+            messages, sentence)
+        output_audio_url = get_audio_file_url_using_polly(sentence)
+        await self.send_output_text(sentence)
+        print_colored(f'SEND OUTPUT TEXT : {sentence}', "yellow")
+        await self.send_audio_url(output_audio_url)
+        print_colored(f"SEND AUDIO URL : {output_audio_url}", "yellow")
+        await sync_to_async(Message.objects.create)(
+            room=self.room, audio_url=audio_file, text=sentence, role='assistant')
+
     async def connect(self):
         # 파라미터 값으로 채팅 룸을 구별
         print("GPT RESPONSE CONNECT")
@@ -28,18 +51,21 @@ class GptResponseGenerator(AsyncJsonWebsocketConsumer):
         self.room = await sync_to_async(Room.objects.create)(
             user=user, count=room_count)
 
+        prompt = "너는 이제부터 래퍼처럼 말해야 해. 네 이름은 씨발피티야. 말 끝마다 '에이 요'를 붙여서 말하는 습관이 있고 중간 중간에는 쓸데없이 영어로 단어를 바꿔서 말하는 습관이 있어."
+        await self.room.set_system(prompt)
+
         await self.accept()
 
-        hello_message = f"안녕하세요! {username}님! 반가워요!"
-        await self.send_output_text(hello_message)
+        # hello_message = f"안녕하세요! {username}님! 반가워요!"
+        # await self.send_output_text(hello_message)
 
-        hello_message_audio_url = get_audio_file_url_using_polly(
-            hello_message)
-        await self.send_audio_url(hello_message_audio_url)
-        await self.send_finish_signal()
+        # hello_message_audio_url = get_audio_file_url_using_polly(
+        #     hello_message)
+        # await self.send_audio_url(hello_message_audio_url)
+        # await self.send_finish_signal()
 
-        await sync_to_async(Message.objects.create)(
-            room=self.room, audio_url=hello_message_audio_url, text=hello_message, role='assistant')
+        # await sync_to_async(Message.objects.create)(
+        #     room=self.room, audio_url=hello_message_audio_url, text=hello_message, role='assistant')
 
     async def disconnect(self, close_code):
         print_colored("DISCONNECT GPT RESPONSE", "yellow")
@@ -61,20 +87,17 @@ class GptResponseGenerator(AsyncJsonWebsocketConsumer):
         messages = await self.room.get_messages()
         messages = add_user_message_to_messages(
             messages, text_gotten_by_input_data)
+        sent_sentence = ""
         for sentence in get_sentences_by_chatgpt(messages):
             if sentence.strip() == "":
                 continue
-            messages = add_assistant_message_to_messages(messages, sentence)
-            output_audio_url = get_audio_file_url_using_polly(sentence)
-            await self.send_output_text(sentence)
-            print_colored(f'SEND OUTPUT TEXT : {sentence}', "yellow")
-            await self.send_audio_url(output_audio_url)
-            print_colored(f"SEND AUDIO URL : {output_audio_url}", "yellow")
-            await sync_to_async(Message.objects.create)(
-                room=self.room, audio_url=audio_file, text=sentence, role='assistant')
-            if len(sentence) < 10:  # 숫자의 경우 너무 짧아서 에러가 남
-                await asyncio.sleep(1)
-
+            sent_sentence += sentence
+            if len(sent_sentence) <= 15:
+                continue
+            await self.send_sentence(messages, sent_sentence, audio_file)
+            sent_sentence = ""
+        if sent_sentence != "":
+            await self.send_sentence(messages, sent_sentence, audio_file)
         await self.send_finish_signal()
 
     # 룸 그룹으로부터 메세지 받음
@@ -92,6 +115,8 @@ class GptResponseGenerator(AsyncJsonWebsocketConsumer):
         }))
 
     async def send_finish_signal(self):
+        messages = await self.room.get_messages()
+        print_colored(messages, "red")
         await self.send(text_data=json.dumps({
             "type": "finish_signal",
             "content": "FINISH!"

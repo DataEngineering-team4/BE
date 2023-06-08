@@ -14,7 +14,7 @@ ssh는 전용 pem을 이용해야 합니다. (민준)한테 파일 있으니 요
 ssh -i <private key path> shsf@4.230.8.32
 
 배포하고 싶을 때는 다음과 같이 입력하시면 됩니다.
-
+BE 폴더에서 pipenv shell 수행 후
 nohup daphne -b 0.0.0.0 -p 5000 config.asgi:application
 
 process 확인은 sudo lsof -i :5000
