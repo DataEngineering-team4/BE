@@ -13,13 +13,12 @@ core/utility.py에 가공하는 함수를 다 넣어놨습니다.
 ssh는 전용 pem을 이용해야 합니다. (민준)한테 파일 있으니 요구하면 드리겠습니다.
 ssh -i <private key path> shsf@4.230.8.32
 
-배포하고 싶을 때는 다음과 같이 입력하시면 됩니다.
-BE 폴더에서 pipenv shell 수행 후
-nohup daphne -b 0.0.0.0 -p 5000 config.asgi:application
+## 현재 시스템 구성
 
-process 확인은 sudo lsof -i :5000
+현재 시스템은 daphne을 systemd로 이용하는 asgi protocol을 nginx가 리버스 프록싱 해주고 있습니다. /chat의 경우 websocket으로 연결을 해주고, /그 외의 프로토콜의 경우는 알아서 http로 연결해줍니다.
 
-그리고 kill -9 <PID> 하시면 됩니다.
+/etc/nginx/sites-available/BE 가 nginx configuration 파일이며,
+/etc/systemd/system/daphne.service가 daphne service 파일입니다.
 
 ## https SSL 위치
 
