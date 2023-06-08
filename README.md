@@ -18,6 +18,7 @@ ssh -i <private key path> shsf@4.230.8.32
 현재 시스템은 daphne을 systemd로 이용하는 asgi protocol을 nginx가 리버스 프록싱 해주고 있습니다. /chat의 경우 websocket으로 연결을 해주고, /그 외의 프로토콜의 경우는 알아서 http로 연결해줍니다.
 
 /etc/nginx/sites-available/BE 가 nginx configuration 파일이며,
+
 /etc/systemd/system/daphne.service가 daphne service 파일입니다.
 
 ## https SSL 위치
