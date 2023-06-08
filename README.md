@@ -20,3 +20,8 @@ nohup daphne -b 0.0.0.0 -p 5000 config.asgi:application
 process 확인은 sudo lsof -i :5000
 
 그리고 kill -9 <PID> 하시면 됩니다.
+
+## https SSL 위치
+
+/etc/letsencrypt/live/www.det4.site/fullchain.pem
+/etc/letsencrypt/live/www.det4.site/privkey.pem

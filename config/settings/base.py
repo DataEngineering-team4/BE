@@ -35,6 +35,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["127.0.0.1:8000", 'www.det4.site', "4.230.8.32"]
 
+CSRF_TRUSTED_ORIGINS = ['https://www.det4.site']
+
 STATIC_ROOT = "staticfiles/"
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-url
 STATIC_URL = "static/"
