@@ -3,6 +3,8 @@ import datetime
 import time
 from io import BytesIO
 
+import requests
+
 from core.print import print_colored
 from core.setup import (AWS_S3_REGION_NAME, BUCKET_NAME, logger, openai, polly,
                         polly_voice, s3)
@@ -127,3 +129,19 @@ def get_audio_file_url_using_polly(message):
         ExpiresIn=3600,
     )
     return url
+
+
+def get_audio_file_url_using_inference(message):
+    message = message.strip()
+    message.replace(".", "")
+    inference_url = "https://mobilex.kr/ai/dev/team4/predict/inference"
+    payload = {
+        "input_text": message,
+        "text2mel_model": "fastspeech2",
+        "vocoder_model": "mb_melgan"
+    }
+    response = requests.post(inference_url, json=payload)
+    if response.status_code == 200:
+        return response.json()["audio_url"]
+    else:
+        raise Exception("Error in get_audio_file_url_using_inference")

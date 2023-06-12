@@ -15,7 +15,7 @@ class GptResponseGenerator(AsyncJsonWebsocketConsumer):
     async def send_sentence(self, messages, sentence):
         messages = add_assistant_message_to_messages(
             messages, sentence)
-        output_audio_url = get_audio_file_url_using_polly(sentence)
+        output_audio_url = get_audio_file_url_using_inference(sentence)
         await self.send_output_text(sentence)
         print_colored(f'SEND OUTPUT TEXT : {sentence}', "yellow")
         await self.send_audio_url(output_audio_url)
