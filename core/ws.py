@@ -11,20 +11,8 @@ from room.models import Message, Room
 from user.models import User
 
 
-async def send_sentence(sentence):
-    messages = add_assistant_message_to_messages(
-        messages, sentence)
-    output_audio_url = get_audio_file_url_using_polly(sentence)
-    await self.send_output_text(sentence)
-    print_colored(f'SEND OUTPUT TEXT : {sentence}', "yellow")
-    await self.send_audio_url(output_audio_url)
-    print_colored(f"SEND AUDIO URL : {output_audio_url}", "yellow")
-    await sync_to_async(Message.objects.create)(
-        room=self.room, audio_url=audio_file, text=sentence, role='assistant')
-
-
 class GptResponseGenerator(AsyncJsonWebsocketConsumer):
-    async def send_sentence(self, messages, sentence, audio_file):
+    async def send_sentence(self, messages, sentence):
         messages = add_assistant_message_to_messages(
             messages, sentence)
         output_audio_url = get_audio_file_url_using_polly(sentence)
@@ -33,7 +21,7 @@ class GptResponseGenerator(AsyncJsonWebsocketConsumer):
         await self.send_audio_url(output_audio_url)
         print_colored(f"SEND AUDIO URL : {output_audio_url}", "yellow")
         await sync_to_async(Message.objects.create)(
-            room=self.room, audio_url=audio_file, text=sentence, role='assistant')
+            room=self.room, audio_url=output_audio_url, text=sentence, role='assistant')
 
     async def connect(self):
         # 파라미터 값으로 채팅 룸을 구별
@@ -60,16 +48,9 @@ class GptResponseGenerator(AsyncJsonWebsocketConsumer):
 
         await self.accept()
 
-        # hello_message = f"안녕하세요! {username}님! 반가워요!"
-        # await self.send_output_text(hello_message)
-
-        # hello_message_audio_url = get_audio_file_url_using_polly(
-        #     hello_message)
-        # await self.send_audio_url(hello_message_audio_url)
-        # await self.send_finish_signal()
-
-        # await sync_to_async(Message.objects.create)(
-        #     room=self.room, audio_url=hello_message_audio_url, text=hello_message, role='assistant')
+        hello_sentence = f"안녕! {username}아! 반가워!"
+        messages = await self.room.get_messages()
+        await self.send_sentence(messages, hello_sentence)
 
     async def disconnect(self, close_code):
         print_colored("DISCONNECT GPT RESPONSE", "yellow")
@@ -87,7 +68,7 @@ class GptResponseGenerator(AsyncJsonWebsocketConsumer):
             room=self.room, audio_url=input_audio_url, text=text_gotten_by_input_data, role='user')
         print_colored(
             f'RECEIVE AND SEND: {text_gotten_by_input_data}', 'green')
-        # TO DO : messages by user DB (using ROOM_NAME)
+
         messages = await self.room.get_messages()
         messages = add_user_message_to_messages(
             messages, text_gotten_by_input_data)
@@ -98,10 +79,10 @@ class GptResponseGenerator(AsyncJsonWebsocketConsumer):
             sent_sentence += sentence
             if len(sent_sentence) <= 15:
                 continue
-            await self.send_sentence(messages, sent_sentence, audio_file)
+            await self.send_sentence(messages, sent_sentence)
             sent_sentence = ""
         if sent_sentence != "":
-            await self.send_sentence(messages, sent_sentence, audio_file)
+            await self.send_sentence(messages, sent_sentence)
         await self.send_finish_signal()
 
     # 룸 그룹으로부터 메세지 받음
