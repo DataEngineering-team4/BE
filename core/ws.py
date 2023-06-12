@@ -48,7 +48,7 @@ class GptResponseGenerator(AsyncJsonWebsocketConsumer):
 
         await self.accept()
 
-        hello_sentence = f"안녕! {username}아! 반가워!"
+        hello_sentence = f"안녕! 반가워!"
         messages = await self.room.get_messages()
         await self.send_sentence(messages, hello_sentence)
 
